@@ -2,8 +2,10 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 
+const JWT_SECRET = process.env.JWT_SECRET || 'vyntra_default_dev_secret_jwt_key_2026';
+
 function tokenFor(user) {
-  return jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+  return jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '7d' });
 }
 function publicUser(user) {
   return { id: user._id, name: user.name, email: user.email, avatarUrl: user.avatarUrl };
