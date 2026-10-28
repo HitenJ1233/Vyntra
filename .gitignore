@@ -1,7 +1,11 @@
 node_modules
 .env
-.env.local
+*.env
+.env*
 dist
 .DS_Store
 server/uploads/*
 !server/uploads/.gitkeep
+server/.mongo-data
+.mongo-data
+

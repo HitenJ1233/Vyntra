@@ -5,7 +5,7 @@ import morgan from 'morgan';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import rateLimit from 'express-rate-limit';
-import { connectDB } from './config/db.js';
+import { connectDB, closeDB } from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 import videoRoutes from './routes/videoRoutes.js';
 import { notFound, errorHandler } from './middleware/errors.js';
@@ -24,7 +24,22 @@ app.use(notFound);
 app.use(errorHandler);
 
 const port = process.env.PORT || 5001;
-connectDB().then(() => app.listen(port, () => console.log(`Vyntra API running at http://localhost:${port}`))).catch(err => {
+connectDB().then(() => {
+  const server = app.listen(port, () => console.log(`Vyntra API running at http://localhost:${port}`));
+  const handleExit = async () => {
+    server.close();
+    await closeDB();
+    process.exit(0);
+  };
+  process.on('SIGINT', handleExit);
+  process.on('SIGTERM', handleExit);
+  process.once('SIGUSR2', async () => {
+    server.close();
+    await closeDB();
+    process.kill(process.pid, 'SIGUSR2');
+  });
+}).catch(err => {
   console.error('Could not start API:', err.message);
   process.exit(1);
 });
+

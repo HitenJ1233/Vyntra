@@ -8,7 +8,14 @@ export async function listVideos(req, res, next) {
     const { q, category, sort = 'latest', page = 1, limit = 12 } = req.query;
     const filter = { status: 'ready' };
     if (category && category !== 'All') filter.category = category;
-    if (q?.trim()) filter.$text = { $search: q.trim() };
+    if (q?.trim()) {
+      const escaped = q.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      filter.$or = [
+        { title: { $regex: escaped, $options: 'i' } },
+        { description: { $regex: escaped, $options: 'i' } },
+        { tags: { $regex: escaped, $options: 'i' } }
+      ];
+    }
     const sortBy = sort === 'popular' ? { viewCount: -1, publishedAt: -1 } : { publishedAt: -1 };
     const safePage = Math.max(1, Number(page) || 1);
     const safeLimit = Math.min(24, Math.max(1, Number(limit) || 12));
